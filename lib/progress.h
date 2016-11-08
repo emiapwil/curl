@@ -24,6 +24,7 @@
 
 #include "timeval.h"
 
+#define PROGRESS_INTERVAL 10000 /* in microseconds */
 
 typedef enum {
   TIMER_NONE,

@@ -134,7 +134,8 @@ int Curl_pgrsDone(struct connectdata *conn)
 {
   int rc;
   struct Curl_easy *data = conn->data;
-  data->progress.lastshow=0;
+  data->progress.lastshow.tv_sec = 0;
+  data->progress.lastshow.tv_usec = 0;
   rc = Curl_pgrsUpdate(conn); /* the final (forced) update */
   if(rc)
     return rc;
@@ -374,11 +375,12 @@ int Curl_pgrsUpdate(struct connectdata *conn)
     ((double)data->progress.uploaded/
      (data->progress.timespent>0?data->progress.timespent:1));
 
-  /* Calculations done at most once a second, unless end is reached */
-  if(data->progress.lastshow != (long)now.tv_sec) {
+  /* Calculations done at most 100us, unless end is reached */
+  if((data->progress.lastshow.tv_sec != (long)now.tv_sec)
+	|| (data->progress.lastshow.tv_usec < now.tv_usec - PROGRESS_INTERVAL)){
     shownow = TRUE;
 
-    data->progress.lastshow = now.tv_sec;
+    data->progress.lastshow = now;
 
     /* Let's do the "current speed" thing, which should use the fastest
        of the dl/ul speeds. Store the faster speed at entry 'nowindex'. */
